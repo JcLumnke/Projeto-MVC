@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulário de Tarefas</title> <!--Biblioteca do Bootstrap-->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container"> <!--Container com o modelo do formulário-->
+        <h1 class="mt-5">Formulário de Tarefas</h1>
+        <form id="taskForm" class="mt-3">
+            <input type="hidden" id="taskId">
+            <div class="form-group">
+                <label for="taskTitle">Título</label>
+                <input type="text" class="form-control" id="taskTitle" required>
+            </div>
+            <div class="form-group">
+                <label for="taskDescription">Descrição</label>
+                <textarea class="form-control" id="taskDescription" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="taskCompleted">Concluída</label>
+                <select class="form-control" id="taskCompleted" required>
+                    <option value="false">Não</option>
+                    <option value="true">Sim</option>
+                </select>
+            </div>
+            <!--Botões para navegar entre as páginas-->
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <a href="http://localhost:3000" class="btn btn-primary">Inicio</a>
+            <a href="http://localhost:3000/view/task/lista-de-tarefas.html" class="btn btn-secondary">Lista de Tarefas</a>
+        
+        </form>
+    </div>
+
+    <script> //Abaixo toda a lógica para criar e atualizar uma tarefa.
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const params = new URLSearchParams(window.location.search);
+            const taskId = params.get('id');
+
+            if (taskId) {
+                fetch(`/tasks/${taskId}`)
+                    .then(response => response.json())
+                    .then(task => {
+                        document.getElementById('taskId').value = task.id;
+                        document.getElementById('taskTitle').value = task.title;
+                        document.getElementById('taskDescription').value = task.description;
+                        document.getElementById('taskCompleted').value = task.completed;
+                    })
+                    .catch(error => console.error('Erro ao carregar tarefa:', error));
+            }
+
+            document.getElementById('taskForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const id = document.getElementById('taskId').value;
+                const title = document.getElementById('taskTitle').value;
+                const description = document.getElementById('taskDescription').value;
+                const completed = document.getElementById('taskCompleted').value;
+
+                if (id) {
+                    fetch(`/tasks/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            title,
+                            description,
+                            completed: completed === 'true'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert('Tarefa atualizada com sucesso!');
+                        window.location.href = 'lista-de-tarefas.html';
+                    })
+                    .catch(error => console.error('Erro ao atualizar tarefa:', error));
+                } else {
+                    fetch('/tasks', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            id: Date.now(), // Geração de ID automático
+                            title,
+                            description,
+                            completed: completed === 'true'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert('Tarefa criada com sucesso!');
+                        window.location.href = 'lista-de-tarefas.html';
+                    })
+                    .catch(error => console.error('Erro ao criar tarefa:', error));
+                }
+            });
+        });
+    </script>
+</body>
+</html>

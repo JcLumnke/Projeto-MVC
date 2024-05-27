@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Tarefas</title> <!--Biblioteca do Bootstrap-->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Lista de Tarefas</h1>
+        <table class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Descrição</th>
+                    <th>Concluída</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="taskList">
+                <!-- As tarefas serão inseridas aqui -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function loadTasks() { //Carrega as tarefas do servidor e exibe na tabela.
+            fetch('/tasks')
+                .then(response => response.json())
+                .then(tasks => {
+                    const taskList = document.getElementById('taskList');
+                    taskList.innerHTML = '';
+                    tasks.forEach(task => {
+                        const taskRow = document.createElement('tr');
+                        taskRow.innerHTML = `
+                            <td>${task.id}</td>
+                            <td>${task.title}</td>
+                            <td>${task.description}</td>
+                            <td>${task.completed ? 'Sim' : 'Não'}</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm mr-2" onclick="editTask(${task.id})">Editar</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">Excluir</button>
+                            </td>
+                        `;
+                        taskList.appendChild(taskRow);
+                    });
+                })
+                .catch(error => console.error('Erro ao carregar tarefas:', error));
+        }
+
+        function deleteTask(id) { // Exclui uma tarefa pelo ID.
+            fetch(`/tasks/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message); // Exibe mensagem de sucesso.
+                loadTasks(); // Recarega a lista de tarefas.
+            })
+            .catch(error => console.error('Erro ao excluir tarefa:', error));
+        }
+
+        function editTask(id) { // Redireciona para a página de edição de tarefa.
+            window.location.href = `formulario-de-tarefas.html?id=${id}`; 
+            
+        }
+
+        window.onload = loadTasks; // Carrega as tarefas quando a pagina é carregada.
+    </script>
+</body>
+<div class="container">
+<a href="http://localhost:3000" class="btn btn-primary">Inicio</a> <!-- Botões para navegar entre as páginas-->
+<a href="http://localhost:3000/view/task/formulario-de-tarefas.html" class="btn btn-primary">Formulário de Tarefas</a>
+
+        
+</div>
+</html>
